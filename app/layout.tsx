@@ -6,7 +6,7 @@ import { Providers } from "./providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
-// Static metadata for the frame
+// Static metadata for the frame - this ensures meta tags are always present
 export const metadata: Metadata = {
   title: "$BISOU - Farcaster Mini App",
   description: "Purchase $BISOU tokens on Base network",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     images: ["https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474"],
   },
   other: {
-    // Farcaster Frame Meta Tags
+    // Farcaster Frame Meta Tags - these will be in the HTML head
     "fc:frame": "vNext",
     "fc:frame:image": "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
     "fc:frame:image:aspect_ratio": "1.91:1",
@@ -39,6 +39,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {/* Frame meta tags are automatically added by Next.js from the metadata object above */}
       </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
