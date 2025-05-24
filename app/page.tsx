@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Wallet, ExternalLink, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { Wallet, Loader2, CheckCircle, AlertCircle, Zap } from "lucide-react"
 import sdk from "@farcaster/frame-sdk"
 
 const BISOU_CONTRACT = "0x951Ed6e6e75e913494C19173C30C6D3C59CffF8F"
-const UNISWAP_V2_ROUTER = "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24" // Base Uniswap V2 Router
+const UNISWAP_V2_ROUTER = "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24"
 
-// Simple ERC20 swap ABI for demonstration
 const SWAP_ABI = [
   {
     name: "swapExactETHForTokens",
@@ -35,6 +34,8 @@ export default function BisouMiniApp() {
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null)
   const [isSwapping, setIsSwapping] = useState(false)
   const [context, setContext] = useState<any>(null)
+  const [isFrameLaunch, setIsFrameLaunch] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
 
   const { address, isConnected } = useAccount()
   const { connect, connectors } = useConnect()
@@ -45,40 +46,48 @@ export default function BisouMiniApp() {
     hash,
   })
 
-  // Initialize Farcaster SDK
+  // Fast SDK initialization with optimizations
   useEffect(() => {
     const initSDK = async () => {
       try {
-        const context = await sdk.context
-        setContext(context)
+        // Check URL parameters for frame context
+        const urlParams = new URLSearchParams(window.location.search)
+        const frameParam = urlParams.get("frame") === "true"
+        const loadedParam = urlParams.get("loaded") === "true"
+
+        setIsFrameLaunch(frameParam)
+
+        if (loadedParam) {
+          setShowWelcome(true)
+          setTimeout(() => setShowWelcome(false), 2000)
+        }
+
+        // Parallel SDK loading for better performance
+        const [contextResult] = await Promise.allSettled([
+          sdk.context,
+          // Preload other resources
+          fetch("/api/frame", { method: "HEAD" }).catch(() => {}),
+        ])
+
+        if (contextResult.status === "fulfilled") {
+          setContext(contextResult.value)
+          console.log("Farcaster context:", contextResult.value)
+        }
+
         setIsSDKLoaded(true)
-        console.log("Farcaster context:", context)
       } catch (error) {
         console.error("Failed to load Farcaster SDK:", error)
-        setIsSDKLoaded(true) // Still show the app even if SDK fails
+        setIsSDKLoaded(true)
       }
     }
 
     initSDK()
   }, [])
 
-  // Add this at the top of the component, after the existing useEffect
-  useEffect(() => {
-    // Check if we're being loaded in a frame context
-    const urlParams = new URLSearchParams(window.location.search)
-    const isFrameLaunch = urlParams.get("frame") === "true" || window.parent !== window
-
-    if (isFrameLaunch) {
-      console.log("Launched from Farcaster frame")
-      // Force SDK loading for frame context
-      setIsSDKLoaded(true)
-    }
-  }, [])
-
   const predefinedAmounts = [
-    { label: "50 $BISOU", value: "50", eth: "0.01" },
-    { label: "250 $BISOU", value: "250", eth: "0.05" },
-    { label: "500 $BISOU", value: "500", eth: "0.1" },
+    { label: "50 $BISOU", value: "50", eth: "0.01", popular: false },
+    { label: "250 $BISOU", value: "250", eth: "0.05", popular: true },
+    { label: "500 $BISOU", value: "500", eth: "0.1", popular: false },
   ]
 
   const handlePredefinedPurchase = (amount: string, ethAmount: string) => {
@@ -88,8 +97,6 @@ export default function BisouMiniApp() {
 
   const handleCustomPurchase = () => {
     if (!customAmount || isNaN(Number(customAmount))) return
-
-    // Simple calculation: assume 1 ETH = 5000 BISOU (adjust based on actual rate)
     const ethAmount = (Number(customAmount) / 5000).toString()
     setSelectedAmount(customAmount)
     handleSwap(ethAmount)
@@ -101,22 +108,14 @@ export default function BisouMiniApp() {
     setIsSwapping(true)
 
     try {
-      const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes
-      const path = [
-        "0x4200000000000000000000000000000000000006", // WETH on Base
-        BISOU_CONTRACT,
-      ]
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 20
+      const path = ["0x4200000000000000000000000000000000000006", BISOU_CONTRACT]
 
       await writeContract({
         address: UNISWAP_V2_ROUTER as `0x${string}`,
         abi: SWAP_ABI,
         functionName: "swapExactETHForTokens",
-        args: [
-          BigInt(0), // amountOutMin (0 for simplicity, should calculate slippage)
-          path as `0x${string}`[],
-          address,
-          BigInt(deadline),
-        ],
+        args: [BigInt(0), path as `0x${string}`[], address, BigInt(deadline)],
         value: parseEther(ethAmount),
       })
     } catch (error) {
@@ -133,12 +132,15 @@ export default function BisouMiniApp() {
     }
   }
 
+  // Fast loading screen
   if (!isSDKLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-600 to-pink-600">
         <div className="text-white text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading $BISOU Mini App...</p>
+          <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-xl flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          </div>
+          <p className="text-lg font-medium">Loading $BISOU...</p>
         </div>
       </div>
     )
@@ -146,24 +148,64 @@ export default function BisouMiniApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-pink-600 p-4">
+      {/* Welcome Animation for Frame Users */}
+      {showWelcome && (
+        <div className="fixed inset-0 bg-purple-600/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center text-white animate-pulse">
+            <div className="text-6xl mb-4">💋</div>
+            <h1 className="text-3xl font-bold">Welcome to $BISOU!</h1>
+            <p className="text-lg opacity-80">Ready to get sweet tokens?</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto space-y-6">
-        {/* Header */}
+        {/* Enhanced Header */}
         <div className="text-center text-white">
-          <h1 className="text-4xl font-bold mb-2">💋 $BISOU</h1>
+          <div className="relative">
+            <h1 className="text-4xl font-bold mb-2">💋 $BISOU</h1>
+            {isFrameLaunch && (
+              <Badge className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 animate-bounce">
+                <Zap className="h-3 w-3 mr-1" />
+                Live!
+              </Badge>
+            )}
+          </div>
           <p className="text-lg opacity-90">The sweetest token on Base</p>
           {context?.user && (
-            <Badge variant="secondary" className="mt-2">
-              Welcome, {context.user.displayName || context.user.username}!
+            <Badge variant="secondary" className="mt-2 animate-fade-in">
+              Welcome, {context.user.displayName || context.user.username}! 👋
             </Badge>
           )}
         </div>
 
-        {/* Wallet Connection */}
+        {/* Quick Stats */}
         <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-          <CardHeader>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-3 gap-4 text-center text-white">
+              <div>
+                <div className="text-2xl font-bold">5K+</div>
+                <div className="text-xs opacity-80">Holders</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">$0.002</div>
+                <div className="text-xs opacity-80">Price</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">Base</div>
+                <div className="text-xs opacity-80">Network</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Enhanced Wallet Connection */}
+        <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+          <CardHeader className="pb-3">
             <CardTitle className="text-white flex items-center gap-2">
               <Wallet className="h-5 w-5" />
               Wallet Connection
+              {isConnected && <CheckCircle className="h-4 w-4 text-green-400" />}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -171,7 +213,7 @@ export default function BisouMiniApp() {
               <div className="space-y-3">
                 <div className="text-white">
                   <p className="text-sm opacity-80">Connected to:</p>
-                  <p className="font-mono text-sm break-all">{address}</p>
+                  <p className="font-mono text-sm break-all bg-white/10 p-2 rounded">{address}</p>
                 </div>
                 <Button
                   onClick={() => disconnect()}
@@ -182,63 +224,48 @@ export default function BisouMiniApp() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={connectWallet} className="w-full bg-white text-purple-600 hover:bg-white/90">
+              <Button
+                onClick={connectWallet}
+                className="w-full bg-white text-purple-600 hover:bg-white/90 font-semibold"
+              >
+                <Wallet className="h-4 w-4 mr-2" />
                 Connect Wallet
               </Button>
             )}
           </CardContent>
         </Card>
 
-        {/* Token Info */}
-        <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white">Token Information</CardTitle>
-          </CardHeader>
-          <CardContent className="text-white space-y-2">
-            <div className="flex justify-between">
-              <span className="opacity-80">Network:</span>
-              <span>Base</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="opacity-80">Symbol:</span>
-              <span>$BISOU</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="opacity-80">Contract:</span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs">
-                  {BISOU_CONTRACT.slice(0, 6)}...{BISOU_CONTRACT.slice(-4)}
-                </span>
-                <ExternalLink className="h-3 w-3 opacity-60" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Purchase Options */}
+        {/* Enhanced Purchase Options */}
         <Card className="bg-white/10 backdrop-blur-lg border-white/20">
           <CardHeader>
             <CardTitle className="text-white">Purchase $BISOU</CardTitle>
             <CardDescription className="text-white/80">Choose an amount or enter a custom quantity</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Predefined amounts */}
+            {/* Enhanced predefined amounts */}
             <div className="grid grid-cols-1 gap-3">
               {predefinedAmounts.map((amount) => (
                 <Button
                   key={amount.value}
                   onClick={() => handlePredefinedPurchase(amount.value, amount.eth)}
                   disabled={!isConnected || isSwapping || isPending || isConfirming}
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-white/20 justify-between"
+                  className={`w-full ${
+                    amount.popular
+                      ? "bg-yellow-500/20 hover:bg-yellow-500/30 border-yellow-400/50"
+                      : "bg-white/20 hover:bg-white/30"
+                  } text-white border-white/20 justify-between relative`}
                   variant="outline"
                 >
+                  {amount.popular && (
+                    <Badge className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs">Popular</Badge>
+                  )}
                   <span>{amount.label}</span>
                   <span className="text-sm opacity-80">~{amount.eth} ETH</span>
                 </Button>
               ))}
             </div>
 
-            {/* Custom amount */}
+            {/* Enhanced custom amount */}
             <div className="space-y-3">
               <div className="flex gap-2">
                 <Input
@@ -251,16 +278,16 @@ export default function BisouMiniApp() {
                 <Button
                   onClick={handleCustomPurchase}
                   disabled={!isConnected || !customAmount || isSwapping || isPending || isConfirming}
-                  className="bg-white text-purple-600 hover:bg-white/90"
+                  className="bg-white text-purple-600 hover:bg-white/90 font-semibold"
                 >
                   Buy
                 </Button>
               </div>
             </div>
 
-            {/* Transaction Status */}
+            {/* Enhanced transaction status */}
             {(isPending || isConfirming || isConfirmed || error) && (
-              <div className="space-y-2">
+              <div className="space-y-2 p-3 bg-white/10 rounded-lg">
                 {isPending && (
                   <div className="flex items-center gap-2 text-white">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -276,7 +303,7 @@ export default function BisouMiniApp() {
                 {isConfirmed && (
                   <div className="flex items-center gap-2 text-green-300">
                     <CheckCircle className="h-4 w-4" />
-                    <span>Transaction confirmed!</span>
+                    <span>Transaction confirmed! 🎉</span>
                   </div>
                 )}
                 {error && (
@@ -288,7 +315,7 @@ export default function BisouMiniApp() {
                 {hash && (
                   <div className="text-white/80 text-xs">
                     <span>Transaction: </span>
-                    <span className="font-mono">
+                    <span className="font-mono bg-white/10 px-2 py-1 rounded">
                       {hash.slice(0, 10)}...{hash.slice(-8)}
                     </span>
                   </div>
@@ -297,14 +324,17 @@ export default function BisouMiniApp() {
             )}
 
             {!isConnected && (
-              <p className="text-white/60 text-sm text-center">Connect your wallet to start purchasing $BISOU tokens</p>
+              <div className="text-center p-4 bg-white/5 rounded-lg">
+                <p className="text-white/60 text-sm">Connect your wallet to start purchasing $BISOU tokens</p>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <div className="text-center text-white/60 text-xs">
+        {/* Enhanced Footer */}
+        <div className="text-center text-white/60 text-xs space-y-1">
           <p>Powered by Farcaster Mini Apps • Base Network</p>
+          {isFrameLaunch && <p className="text-yellow-400">⚡ Launched from Farcaster Frame</p>}
         </div>
       </div>
     </div>

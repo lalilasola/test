@@ -107,3 +107,36 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom animations for better UX */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+/* Optimize loading performance */
+.loading-optimized {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-out;
+}
+
+/* Preload critical fonts */
+@font-face {
+  font-family: "Inter";
+  font-display: swap;
+}
