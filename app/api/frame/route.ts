@@ -3,64 +3,82 @@ import { type NextRequest, NextResponse } from "next/server"
 export async function GET(request: NextRequest) {
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
 
-  return new NextResponse(
-    `<!DOCTYPE html>
-    <html>
-      <head>
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
-        <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
-        <meta property="fc:frame:button:1:action" content="link" />
-        <meta property="fc:frame:button:1:target" content="${baseUrl}" />
-        <meta property="fc:frame:post_url" content="${baseUrl}/api/frame" />
-        
-        <meta property="og:title" content="$BISOU - Farcaster Mini App" />
-        <meta property="og:description" content="Purchase $BISOU tokens on Base network" />
-        <meta property="og:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
-        
-        <title>$BISOU - Farcaster Mini App</title>
-      </head>
-      <body>
-        <h1>$BISOU Mini App</h1>
-        <p>Purchase $BISOU tokens on Base network</p>
-        <img src="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" alt="BISOU Logo" style="max-width: 400px;" />
-      </body>
-    </html>`,
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html",
-      },
+  const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>$BISOU - Farcaster Mini App</title>
+    
+    <!-- Farcaster Frame Meta Tags -->
+    <meta property="fc:frame" content="vNext" />
+    <meta property="fc:frame:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
+    <meta property="fc:frame:image:aspect_ratio" content="1.91:1" />
+    <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
+    <meta property="fc:frame:button:1:action" content="link" />
+    <meta property="fc:frame:button:1:target" content="${baseUrl}" />
+    <meta property="fc:frame:post_url" content="${baseUrl}/api/frame" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="$BISOU - Farcaster Mini App" />
+    <meta property="og:description" content="Purchase $BISOU tokens on Base network" />
+    <meta property="og:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
+    <meta property="og:url" content="${baseUrl}" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="$BISOU - Farcaster Mini App" />
+    <meta name="twitter:description" content="Purchase $BISOU tokens on Base network" />
+    <meta name="twitter:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
+  </head>
+  <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <div style="text-align: center; max-width: 600px;">
+      <h1 style="font-size: 3rem; margin-bottom: 1rem;">💋 $BISOU</h1>
+      <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">The sweetest token on Base network</p>
+      
+      <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+        <img 
+          src="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" 
+          alt="BISOU Logo" 
+          style="max-width: 300px; width: 100%; height: auto; border-radius: 15px; margin-bottom: 1rem;"
+        />
+        <p style="margin: 0; opacity: 0.8;">Click the button below to open the Mini App and start purchasing $BISOU tokens!</p>
+      </div>
+      
+      <a 
+        href="${baseUrl}" 
+        style="display: inline-block; background: white; color: #8B5CF6; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: transform 0.2s;"
+        onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'"
+      >
+        🚀 Open $BISOU Mini App
+      </a>
+    </div>
+  </body>
+</html>`
+
+  return new NextResponse(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=300",
     },
-  )
+  })
 }
 
 export async function POST(request: NextRequest) {
-  // Handle frame interactions
+  // Handle frame button clicks
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
 
-  return new NextResponse(
-    `<!DOCTYPE html>
-    <html>
-      <head>
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
-        <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
-        <meta property="fc:frame:button:1:action" content="link" />
-        <meta property="fc:frame:button:1:target" content="${baseUrl}" />
-        
-        <title>$BISOU - Farcaster Mini App</title>
-      </head>
-      <body>
-        <h1>$BISOU Mini App</h1>
-        <p>Click to open the Mini App and purchase $BISOU tokens!</p>
-      </body>
-    </html>`,
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html",
-      },
-    },
-  )
+  try {
+    const body = await request.json()
+    console.log("Frame interaction:", body)
+
+    // Redirect to the Mini App
+    return NextResponse.redirect(baseUrl, 302)
+  } catch (error) {
+    console.error("Frame POST error:", error)
+    return NextResponse.redirect(baseUrl, 302)
+  }
 }
