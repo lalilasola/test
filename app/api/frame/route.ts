@@ -3,6 +3,22 @@ import { type NextRequest, NextResponse } from "next/server"
 export async function GET(request: NextRequest) {
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
 
+  // Create the FrameEmbed object according to the official spec
+  const frameEmbed = {
+    version: "next",
+    imageUrl: "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
+    button: {
+      title: "Open $BISOU Mini App",
+      action: {
+        type: "launch_frame",
+        name: "bisou-mini-app",
+        url: baseUrl,
+        splashImageUrl: "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
+        splashBackgroundColor: "#8B5CF6",
+      },
+    },
+  }
+
   const html = `<!DOCTYPE html>
 <html>
   <head>
@@ -10,14 +26,8 @@ export async function GET(request: NextRequest) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>$BISOU - Farcaster Mini App</title>
     
-    <!-- Farcaster Frame Meta Tags -->
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
-    <meta property="fc:frame:image:aspect_ratio" content="1.91:1" />
-    <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
-    <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="${baseUrl}" />
-    <meta property="fc:frame:post_url" content="${baseUrl}/api/frame" />
+    <!-- Official Farcaster Frame Embed Meta Tag -->
+    <meta name="fc:frame" content='${JSON.stringify(frameEmbed)}' />
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="$BISOU - Farcaster Mini App" />
@@ -74,30 +84,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log("Frame interaction:", body)
 
-    // Return a redirect response for frame interactions
-    const html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
-    <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
-    <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="${baseUrl}" />
-    <title>$BISOU - Opening Mini App</title>
-  </head>
-  <body>
-    <h1>Opening $BISOU Mini App...</h1>
-    <script>window.location.href = "${baseUrl}";</script>
-  </body>
-</html>`
-
-    return new NextResponse(html, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-    })
+    return NextResponse.redirect(baseUrl, 302)
   } catch (error) {
     console.error("Frame POST error:", error)
     return NextResponse.redirect(baseUrl, 302)
