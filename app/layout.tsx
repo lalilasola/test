@@ -6,30 +6,25 @@ import { Providers } from "./providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
-// Dynamic metadata generation for proper frame support
-export async function generateMetadata(): Promise<Metadata> {
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
-
-  return {
+// Use static metadata instead of generateMetadata to avoid conflicts
+export const metadata: Metadata = {
+  title: "$BISOU - Farcaster Mini App",
+  description: "Purchase $BISOU tokens on Base network",
+  openGraph: {
     title: "$BISOU - Farcaster Mini App",
     description: "Purchase $BISOU tokens on Base network",
-    openGraph: {
-      title: "$BISOU - Farcaster Mini App",
-      description: "Purchase $BISOU tokens on Base network",
-      images: ["https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474"],
-    },
-    other: {
-      // Farcaster Frame Meta Tags
-      "fc:frame": "vNext",
-      "fc:frame:image": "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
-      "fc:frame:image:aspect_ratio": "1.91:1",
-      "fc:frame:button:1": "Open $BISOU Mini App",
-      "fc:frame:button:1:action": "link",
-      "fc:frame:button:1:target": baseUrl,
-      "fc:frame:post_url": `${baseUrl}/api/frame`,
-    },
-    generator: "v0.dev",
-  }
+    images: ["https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474"],
+  },
+  other: {
+    // Farcaster Frame Meta Tags
+    "fc:frame": "vNext",
+    "fc:frame:image": "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
+    "fc:frame:image:aspect_ratio": "1.91:1",
+    "fc:frame:button:1": "Open $BISOU Mini App",
+    "fc:frame:button:1:action": "link",
+    "fc:frame:button:1:target": process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000",
+  },
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -60,7 +55,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-export const metadata = {
-      generator: 'v0.dev'
-    };
