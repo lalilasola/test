@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "$BISOU - Farcaster Mini App",
   description: "Purchase $BISOU tokens on Base network",
   other: {
-    // Farcaster Mini App Meta Tags
+    // Default to original variant - can be overridden by variant routes
     "fc:frame": "vNext",
     "fc:frame:image": "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
     "fc:frame:button:1": "Open Mini App",
