@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
+  // Use the exact Vercel URL from the screenshot
+  const baseUrl = "https://v0-farcaster-mini-clenmcbwx-lalilasolas-projects.vercel.app"
 
   // Create the FrameEmbed object according to the official spec
   const frameEmbed = {
@@ -45,6 +46,9 @@ export async function GET(request: NextRequest) {
     
     <!-- Manifest Link -->
     <link rel="manifest" href="${baseUrl}/api/manifest" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors *;" />
   </head>
   <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
     <div style="text-align: center; max-width: 600px;">
@@ -77,12 +81,14 @@ export async function GET(request: NextRequest) {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",
+      "Access-Control-Allow-Origin": "*",
+      "X-Frame-Options": "ALLOWALL",
     },
   })
 }
 
 export async function POST(request: NextRequest) {
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
+  const baseUrl = "https://v0-farcaster-mini-clenmcbwx-lalilasolas-projects.vercel.app"
 
   try {
     const body = await request.json()
@@ -93,4 +99,15 @@ export async function POST(request: NextRequest) {
     console.error("Frame POST error:", error)
     return NextResponse.redirect(`${baseUrl}/frame-launch`, 302)
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  })
 }
