@@ -40,6 +40,10 @@ export const metadata: Metadata = {
   other: {
     // Official Farcaster Frame Embed meta tag with stringified JSON
     "fc:frame": createFrameEmbed(),
+    // Add manifest reference
+    "fc:frame:manifest": process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}/api/manifest`
+      : "http://localhost:3000/api/manifest",
   },
   generator: "v0.dev",
 }
@@ -53,6 +57,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>

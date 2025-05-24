@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       action: {
         type: "launch_frame",
         name: "bisou-mini-app",
-        url: baseUrl,
+        url: `${baseUrl}/frame-launch`,
         splashImageUrl: "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
         splashBackgroundColor: "#8B5CF6",
       },
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     
     <!-- Official Farcaster Frame Embed Meta Tag -->
     <meta name="fc:frame" content='${JSON.stringify(frameEmbed)}' />
+    <meta name="fc:frame:manifest" content="${baseUrl}/api/manifest" />
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="$BISOU - Farcaster Mini App" />
@@ -41,6 +42,9 @@ export async function GET(request: NextRequest) {
     <meta name="twitter:title" content="$BISOU - Farcaster Mini App" />
     <meta name="twitter:description" content="Purchase $BISOU tokens on Base network" />
     <meta name="twitter:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
+    
+    <!-- Manifest Link -->
+    <link rel="manifest" href="${baseUrl}/api/manifest" />
   </head>
   <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
     <div style="text-align: center; max-width: 600px;">
@@ -57,7 +61,7 @@ export async function GET(request: NextRequest) {
       </div>
       
       <a 
-        href="${baseUrl}" 
+        href="${baseUrl}/frame-launch" 
         style="display: inline-block; background: white; color: #8B5CF6; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: transform 0.2s;"
         onmouseover="this.style.transform='scale(1.05)'"
         onmouseout="this.style.transform='scale(1)'"
@@ -84,9 +88,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log("Frame interaction:", body)
 
-    return NextResponse.redirect(baseUrl, 302)
+    return NextResponse.redirect(`${baseUrl}/frame-launch`, 302)
   } catch (error) {
     console.error("Frame POST error:", error)
-    return NextResponse.redirect(baseUrl, 302)
+    return NextResponse.redirect(`${baseUrl}/frame-launch`, 302)
   }
 }
