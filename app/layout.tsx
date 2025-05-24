@@ -6,7 +6,7 @@ import { Providers } from "./providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
-// Use static metadata instead of generateMetadata to avoid conflicts
+// Static metadata for the frame
 export const metadata: Metadata = {
   title: "$BISOU - Farcaster Mini App",
   description: "Purchase $BISOU tokens on Base network",
@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     "fc:frame:button:1": "Open $BISOU Mini App",
     "fc:frame:button:1:action": "link",
     "fc:frame:button:1:target": process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000",
+    "fc:frame:post_url": process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}/api/frame`
+      : "http://localhost:3000/api/frame",
   },
   generator: "v0.dev",
 }
@@ -36,18 +39,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta property="fc:frame" content="vNext" />
-        <meta
-          property="fc:frame:image"
-          content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474"
-        />
-        <meta property="fc:frame:image:aspect_ratio" content="1.91:1" />
-        <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
-        <meta property="fc:frame:button:1:action" content="link" />
-        <meta
-          property="fc:frame:button:1:target"
-          content={process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"}
-        />
       </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>

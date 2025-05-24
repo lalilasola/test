@@ -68,15 +68,36 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Handle frame button clicks
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
 
   try {
     const body = await request.json()
     console.log("Frame interaction:", body)
 
-    // Redirect to the Mini App
-    return NextResponse.redirect(baseUrl, 302)
+    // Return a redirect response for frame interactions
+    const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta property="fc:frame" content="vNext" />
+    <meta property="fc:frame:image" content="https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474" />
+    <meta property="fc:frame:button:1" content="Open $BISOU Mini App" />
+    <meta property="fc:frame:button:1:action" content="link" />
+    <meta property="fc:frame:button:1:target" content="${baseUrl}" />
+    <title>$BISOU - Opening Mini App</title>
+  </head>
+  <body>
+    <h1>Opening $BISOU Mini App...</h1>
+    <script>window.location.href = "${baseUrl}";</script>
+  </body>
+</html>`
+
+    return new NextResponse(html, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+      },
+    })
   } catch (error) {
     console.error("Frame POST error:", error)
     return NextResponse.redirect(baseUrl, 302)
