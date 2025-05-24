@@ -62,6 +62,19 @@ export default function BisouMiniApp() {
     initSDK()
   }, [])
 
+  // Add this at the top of the component, after the existing useEffect
+  useEffect(() => {
+    // Check if we're being loaded in a frame context
+    const urlParams = new URLSearchParams(window.location.search)
+    const isFrameLaunch = urlParams.get("frame") === "true" || window.parent !== window
+
+    if (isFrameLaunch) {
+      console.log("Launched from Farcaster frame")
+      // Force SDK loading for frame context
+      setIsSDKLoaded(true)
+    }
+  }, [])
+
   const predefinedAmounts = [
     { label: "50 $BISOU", value: "50", eth: "0.01" },
     { label: "250 $BISOU", value: "250", eth: "0.05" },

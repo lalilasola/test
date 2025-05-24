@@ -18,7 +18,7 @@ const createFrameEmbed = () => {
       action: {
         type: "launch_frame",
         name: "bisou-mini-app",
-        url: baseUrl,
+        url: `${baseUrl}/frame-launch`,
         splashImageUrl: "https://ipfs.io/ipfs/bafkreighrlz43fgcdmqdtyv755zmsqsn5iey5stxvicgxfygfn6mxoy474",
         splashBackgroundColor: "#8B5CF6",
       },
